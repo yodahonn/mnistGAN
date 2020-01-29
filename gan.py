@@ -6,7 +6,7 @@ from tensorflow import keras
 
 BATCH_SIZE = 256
 BUFFER_SIZE = 60000
-EPOCHES = 300
+EPOCHES = 3000
 OUTPUT_DIR = "img"
 
 mnist = keras.datasets.mnist
@@ -90,8 +90,9 @@ class Discriminator(keras.Model):
         x = self.input_layer(input_tensor)
         x = self.dense_1(x)
         x = self.leaky_1(x)
+        x = self.dense_2(x)
         x = self.leaky_2(x)
-        x = self.leaky_3(x)
+        x = self.dense_3(x)
         x = self.leaky_3(x)
         x = self.logits(x)
         return x
@@ -122,6 +123,10 @@ def training_step(generator: Discriminator, discriminator: Discriminator, images
             gradients_of_generator = gen_tape.gradient(generator_loss, generator.trainable_variables)
             generator_optimizer.apply_gradients(zip(gradients_of_generator, generator.trainable_variables))
 
+generator = Generator()
+fake_image = generator(np.random.uniform(-1, 1, size=(1,100)))
+fake_image = tf.reshape(fake_image, shape=(28, 28))
+plt.imshow(fake_image, cmap='gray')
 
 def training(dataset, epoches):
     for epoch in range(epoches):
@@ -134,3 +139,7 @@ def training(dataset, epoches):
             print("{}/{} epoches".format(epoch, epoches))
             # plt.imshow(fake_image, cmap = "gray")
             plt.imsave("{}/{}.png".format(OUTPUT_DIR, epoch), fake_image, cmap="gray")
+
+discriminator = Discriminator()
+seed = np.random.uniform(-1, 1, size=(1, 100))
+training(train_dataset, EPOCHES)
